@@ -5,6 +5,7 @@ import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
 import java.io.*;
+import java.math.BigInteger;
 
 /**
  *
@@ -50,13 +51,8 @@ public class Main {
 
         encrypt = encrypt.replaceAll("(-c|-d)", "").strip();
 
-        Integer key = Integer.parseInt(encrypt, 16);
+        BigInteger key = new BigInteger(encrypt, 16);
 
-        if (Integer.toHexString(key).equals(encrypt)){
-            System.out.println("yep");
-        } else {
-            System.out.println("Nope");
-        }
         try {
             encryptDecrypt(key);
         } catch (IOException e) {
@@ -64,7 +60,7 @@ public class Main {
         }
     }
 
-    private void encryptDecrypt(Integer key) throws IOException {
+    private void encryptDecrypt(BigInteger key) throws IOException {
         File incFile = new File(inputFileName);
         if (outputFileName == null){
             outputFileName = incFile.getName();
@@ -74,7 +70,7 @@ public class Main {
         // Сразу скажу, почему так: будет несколько проблематично хранить
         // в ОЗУ текстовый файл и разбивать его по символам (Да да, первый сем меня этому научил :D)
         // К сожалению, с тем что я испольхую варианты только "Убрать всё и написать вот это"
-        // (в случае если мы весь тексn зашифровали в оперативе и всё выгружаем назад)
+        // (в случае если мы весь текст зашифровали в оперативе и всё выгружаем назад)
         // либо дописывать в конец (Будет наглядное пособие как создать
         // файл огромных размеров с помощью алгоритма шифрования, не защитив при этом файл :D)
         boolean check = outFile.createNewFile();
@@ -82,16 +78,15 @@ public class Main {
         FileInputStream isr = new FileInputStream(incFile.getAbsolutePath());
         FileOutputStream osr = new FileOutputStream(outFile.getPath());
         if (!check){
-            System.out.println("Файл не возможно переписать");
+            System.out.println("Файл не возможно переписать.");
             System.exit(-1);
         }
 
         while (isr.available() > 0){
-            char oneChar = (char) isr.read();
-            osr.write(oneChar ^ key);
+            osr.write(isr.read() ^ key.byteValue());
         }
         isr.close();
         osr.close();
-        System.out.println("Good");
+        System.out.println("Операция завершена успешно.");
     }
 }
