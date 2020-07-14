@@ -1,14 +1,17 @@
+package com.valaubr;
 
 import org.kohsuke.args4j.Argument;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 import org.kohsuke.args4j.Option;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.BigInteger;
 
 /**
- *
  * @author valaubr
  */
 public class Main {
@@ -24,6 +27,7 @@ public class Main {
 
     @Option(name = "-o", required = false, metaVar = "OutputName", usage = "Output file name")
     private String outputFileName;
+
     /**
      * @param args the command line arguments
      */
@@ -45,7 +49,7 @@ public class Main {
 
     private void run() {
         //Кастыль из за условия с encrypt - decrypt в разные опции...
-        if (encrypt == null){
+        if (encrypt == null) {
             encrypt = decrypt;
         }
 
@@ -62,7 +66,7 @@ public class Main {
 
     private void encryptDecrypt(BigInteger key) throws IOException {
         File incFile = new File(inputFileName);
-        if (outputFileName == null){
+        if (outputFileName == null) {
             outputFileName = incFile.getName();
         }
         outputFileName = outputFileName.replaceFirst("-o", "").strip();
@@ -77,14 +81,21 @@ public class Main {
 
         FileInputStream isr = new FileInputStream(incFile.getAbsolutePath());
         FileOutputStream osr = new FileOutputStream(outFile.getPath());
-        if (!check){
+        if (!check) {
             System.out.println("Файл не возможно переписать.");
             System.exit(-1);
         }
 
-        while (isr.available() > 0){
-            osr.write(isr.read() ^ key.byteValue());
+        int counter = 0;
+        byte[] arr = key.toByteArray();
+        key = null; // На тот случай если работа будет долгой и G1 подхватит.
+        while (isr.available() > 0) {
+            osr.write(isr.read() ^ arr[counter++]);
+            if (counter >= arr.length) {
+                counter = 0;
+            }
         }
+
         isr.close();
         osr.close();
         System.out.println("Операция завершена успешно.");
